@@ -26,7 +26,7 @@ TEST_F(CarRacingTestSuite, notFullyPreparedCarShouldNotJoinTheRace)
     EXPECT_CALL(m_carMock, statusOfEngine()).WillOnce(Return(100));
     EXPECT_CALL(m_carMock, statusOfSuspension()).WillOnce(Return(20));
 
-    ASSERT_FALSE(m_race.validate(m_carMock));
+    ASSERT_FALSE(m_race.validate(&m_carMock));
 }
 
 TEST_F(CarRacingTestSuite, fullyPreparedCarShouldBeAdmitted)
@@ -35,7 +35,7 @@ TEST_F(CarRacingTestSuite, fullyPreparedCarShouldBeAdmitted)
     EXPECT_CALL(m_carMock, statusOfEngine()).WillOnce(Return(100));
     EXPECT_CALL(m_carMock, statusOfSuspension()).WillOnce(Return(100));
 
-    ASSERT_TRUE(m_race.validate(m_carMock));
+    ASSERT_TRUE(m_race.validate(&m_carMock));
 }
 
 struct TrackParams
@@ -76,7 +76,7 @@ TEST_P(RaceCalcTimeTestSuite, RaceCalcTimeInDifferentParams)
     EXPECT_CALL(m_trackMock, getLength()).WillOnce(Return(GetParam().trackParams.length));
     EXPECT_CALL(m_trackMock, getTurns()).WillOnce(Return(GetParam().trackParams.turns));
 
-    ASSERT_EQ(GetParam().expectedTime, m_race.calcTime(m_carMock, m_trackMock));
+    ASSERT_EQ(GetParam().expectedTime, m_race.calcTime(&m_carMock, m_trackMock));
 }
 
 TEST_F(CarRacingTestSuite, TeamWithLessTimeShouldWin)
@@ -85,7 +85,7 @@ TEST_F(CarRacingTestSuite, TeamWithLessTimeShouldWin)
     CarMock l_car2;
     TeamMock l_team1;
     TeamMock l_team2;
-    vector<reference_wrapper<ITeam>> l_teams{l_team1, l_team2};
+    vector<ITeam*> l_teams{&l_team1, &l_team2};
     vector<int> l_seq{2, 1};
 
     EXPECT_CALL(l_team1, getCar()).WillRepeatedly(Return(&l_car1));
@@ -105,8 +105,8 @@ TEST_F(CarRacingTestSuite, TeamWithLessTimeShouldWin)
     EXPECT_CALL(l_car2, qualityOfEngine()).WillOnce(Return(EngineQuality::High));
     EXPECT_CALL(l_car2, handling()).WillOnce(Return(Handling::Good));
 
-    EXPECT_CALL(m_trackMock, getLength()).WillOnce(Return(500));
-    EXPECT_CALL(m_trackMock, getTurns()).WillOnce(Return(6));
+    EXPECT_CALL(m_trackMock, getLength()).WillRepeatedly(Return(500));
+    EXPECT_CALL(m_trackMock, getTurns()).WillRepeatedly(Return(6));
 
     ASSERT_EQ(l_seq, m_race.run(l_teams, m_trackMock));
 
