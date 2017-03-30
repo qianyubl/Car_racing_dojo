@@ -1,14 +1,18 @@
 #pragma once
 
 #include <vector>
+#include <functional>
+
+class ICar;
+class ITrack;
+class ITeam;
 
 using namespace std;
-
-class ITeam;
-class Track;
 
 class Race
 {
 public:
-    vector<int> run(const vector<ITeam *>& p_teams, const Track& p_track);
+    vector<int> run(const vector<reference_wrapper<ITeam>>&, const ITrack&);
+    bool validate(const ICar&);
+    float calcTime(const ICar&, const ITrack&);
 };
