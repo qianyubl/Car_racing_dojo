@@ -7,6 +7,7 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
 {
     vector<pair<int, float>> l_vecSeq;
     vector<ITeam*> l_teams;
+
     for (auto p : p_teams)
     {
         if(validate(p->getCar()))
