@@ -21,8 +21,12 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
         throw out_of_range(" validate teams size is out of range ");
     }
 
+    sort(l_teams.begin(), l_teams.end(),
+         [](auto p1, auto p2){ return p1->getQualificationTime() < p2->getQualificationTime();});
+
+    float i = 0.0;
     for_each(l_teams.begin(), l_teams.end(),
-             [&](auto p){ l_vecSeq.push_back(make_pair(p->getId(), this -> calcTime(p->getCar(),p_track)));});
+             [&](auto p){ l_vecSeq.push_back(make_pair(p->getId(), (i++) + this -> calcTime(p->getCar(),p_track)));});
 
     sort(l_vecSeq.begin(), l_vecSeq.end(),
          [](auto p1, auto p2){ return p1.second < p2.second;});
