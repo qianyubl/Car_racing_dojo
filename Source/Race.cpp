@@ -16,6 +16,11 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
         }
     }
 
+    if(l_teams.size() > 6 or l_teams.size() < 2)
+    {
+        throw out_of_range(" validate teams size is out of range ");
+    }
+
     for_each(l_teams.begin(), l_teams.end(),
              [&](auto p){ l_vecSeq.push_back(make_pair(p->getId(), this -> calcTime(p->getCar(),p_track)));});
 

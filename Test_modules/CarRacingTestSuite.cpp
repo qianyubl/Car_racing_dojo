@@ -112,3 +112,44 @@ TEST_F(CarRacingTestSuite, TeamWithLessTimeShouldWin)
 
 }
 
+TEST_F(CarRacingTestSuite, MoreThanSixValidedTeamsAreNotAllowed)
+{
+    CarMock l_car1;
+    TeamMock l_team1, l_team2, l_team3, l_team4, l_team5, l_team6, l_team7;
+
+    vector<ITeam*> l_teams{&l_team1, &l_team2, &l_team3, &l_team4, &l_team5, &l_team6, &l_team7};
+
+    EXPECT_CALL(l_team1, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team2, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team3, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team4, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team5, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team6, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team7, getCar()).WillRepeatedly(Return(&l_car1));
+
+
+    EXPECT_CALL(l_car1, statusOfTire()).WillRepeatedly(Return(100));
+    EXPECT_CALL(l_car1, statusOfEngine()).WillRepeatedly(Return(100));
+    EXPECT_CALL(l_car1, statusOfSuspension()).WillRepeatedly(Return(100));
+
+    ASSERT_THROW(m_race.run(l_teams, m_trackMock), out_of_range);
+
+}
+
+TEST_F(CarRacingTestSuite, LessThanTwoValidedTeamsAreNotAllowed)
+{
+    CarMock l_car1;
+    TeamMock l_team1;
+
+    vector<ITeam*> l_teams{&l_team1};
+
+    EXPECT_CALL(l_team1, getCar()).WillRepeatedly(Return(&l_car1));
+
+    EXPECT_CALL(l_car1, statusOfTire()).WillRepeatedly(Return(100));
+    EXPECT_CALL(l_car1, statusOfEngine()).WillRepeatedly(Return(100));
+    EXPECT_CALL(l_car1, statusOfSuspension()).WillRepeatedly(Return(100));
+
+    ASSERT_THROW(m_race.run(l_teams, m_trackMock), out_of_range);
+
+}
+
