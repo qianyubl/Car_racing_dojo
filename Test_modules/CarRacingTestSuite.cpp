@@ -98,18 +98,62 @@ TEST_F(CarRacingTestSuite, TeamWithLessTimeShouldWin)
     EXPECT_CALL(l_car1, statusOfTire()).WillOnce(Return(100));
     EXPECT_CALL(l_car1, statusOfEngine()).WillOnce(Return(100));
     EXPECT_CALL(l_car1, statusOfSuspension()).WillOnce(Return(100));
-    EXPECT_CALL(l_car1, qualityOfEngine()).WillOnce(Return(EngineQuality::High));
-    EXPECT_CALL(l_car1, handling()).WillOnce(Return(Handling::Good));
+    EXPECT_CALL(l_car1, qualityOfEngine()).WillRepeatedly(Return(EngineQuality::High));
+    EXPECT_CALL(l_car1, handling()).WillRepeatedly(Return(Handling::Good));
 
     EXPECT_CALL(l_car2, statusOfTire()).WillOnce(Return(100));
     EXPECT_CALL(l_car2, statusOfEngine()).WillOnce(Return(100));
     EXPECT_CALL(l_car2, statusOfSuspension()).WillOnce(Return(100));
-    EXPECT_CALL(l_car2, qualityOfEngine()).WillOnce(Return(EngineQuality::High));
-    EXPECT_CALL(l_car2, handling()).WillOnce(Return(Handling::Good));
+    EXPECT_CALL(l_car2, qualityOfEngine()).WillRepeatedly(Return(EngineQuality::High));
+    EXPECT_CALL(l_car2, handling()).WillRepeatedly(Return(Handling::Good));
 
     EXPECT_CALL(m_trackMock, getLength()).WillRepeatedly(Return(500));
     EXPECT_CALL(m_trackMock, getTurns()).WillRepeatedly(Return(6));
 
+    ASSERT_EQ(l_seq, m_race.run(l_teams, m_trackMock));
+
+}
+
+TEST_F(CarRacingTestSuite, TeamWithEqualTimeAfterOneLapWithBetterEngineShouldWin)
+{
+    CarMock l_car1, l_car2, l_car3;
+    TeamMock l_team1, l_team2, l_team3;
+    vector<ITeam*> l_teams{&l_team1, &l_team2, &l_team3};
+
+    EXPECT_CALL(l_team1, getCar()).WillRepeatedly(Return(&l_car1));
+    EXPECT_CALL(l_team2, getCar()).WillRepeatedly(Return(&l_car2));
+    EXPECT_CALL(l_team3, getCar()).WillRepeatedly(Return(&l_car3));
+    EXPECT_CALL(l_team1, getId()).WillRepeatedly(Return(1));
+    EXPECT_CALL(l_team2, getId()).WillRepeatedly(Return(2));
+    EXPECT_CALL(l_team3, getId()).WillRepeatedly(Return(3));
+
+    EXPECT_CALL(l_team1, getQualificationTime()).WillRepeatedly(Return(35.0));//33-1-1+33=65
+    EXPECT_CALL(l_team2, getQualificationTime()).WillRepeatedly(Return(32.0));//28       +28=56
+    EXPECT_CALL(l_team3, getQualificationTime()).WillRepeatedly(Return(38.0));//34-2    +34=66
+
+    EXPECT_CALL(l_car1, statusOfTire()).WillOnce(Return(100));
+    EXPECT_CALL(l_car1, statusOfEngine()).WillOnce(Return(100));
+    EXPECT_CALL(l_car1, statusOfSuspension()).WillOnce(Return(100));
+    EXPECT_CALL(l_car1, qualityOfEngine()).WillRepeatedly(Return(EngineQuality::Low));
+    EXPECT_CALL(l_car1, handling()).WillRepeatedly(Return(Handling::Good));
+
+    EXPECT_CALL(l_car2, statusOfTire()).WillOnce(Return(100));
+    EXPECT_CALL(l_car2, statusOfEngine()).WillOnce(Return(100));
+    EXPECT_CALL(l_car2, statusOfSuspension()).WillOnce(Return(100));
+    EXPECT_CALL(l_car2, qualityOfEngine()).WillRepeatedly(Return(EngineQuality::High));
+    EXPECT_CALL(l_car2, handling()).WillRepeatedly(Return(Handling::Good));
+
+    EXPECT_CALL(l_car3, statusOfTire()).WillOnce(Return(100));
+    EXPECT_CALL(l_car3, statusOfEngine()).WillOnce(Return(100));
+    EXPECT_CALL(l_car3, statusOfSuspension()).WillOnce(Return(100));
+    EXPECT_CALL(l_car3, qualityOfEngine()).WillRepeatedly(Return(EngineQuality::High));
+    EXPECT_CALL(l_car3, handling()).WillRepeatedly(Return(Handling::Bad));
+
+
+    EXPECT_CALL(m_trackMock, getLength()).WillRepeatedly(Return(500));
+    EXPECT_CALL(m_trackMock, getTurns()).WillRepeatedly(Return(6));
+
+    vector<int> l_seq{2, 1, 3};
     ASSERT_EQ(l_seq, m_race.run(l_teams, m_trackMock));
 
 }

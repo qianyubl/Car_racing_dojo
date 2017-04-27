@@ -5,7 +5,7 @@
 
 vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
 {
-    vector<pair<int, float>> l_vecSeq;
+    vector<pair<ITeam*, float>> l_vecSeq;
     vector<ITeam*> l_teams;
 
     for (auto p : p_teams)
@@ -26,14 +26,35 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
 
     float i = 0.0;
     for_each(l_teams.begin(), l_teams.end(),
-             [&](auto p){ l_vecSeq.push_back(make_pair(p->getId(), (i++) + this -> calcTime(p->getCar(),p_track)));});
+             [&](auto p){ l_vecSeq.push_back(make_pair(p, (i++) + this -> calcTime(p->getCar(),p_track)));});
 
     sort(l_vecSeq.begin(), l_vecSeq.end(),
          [](auto p1, auto p2){ return p1.second < p2.second;});
 
+    auto l_resultIter = l_vecSeq.begin();
+    for(auto l_iter = l_vecSeq.begin(); l_iter != l_vecSeq.end();)
+    {
+        l_resultIter = find_if(l_iter, l_vecSeq.end(),[&](auto p){return p.second != l_iter->second;});
+        if(any_of(l_iter, l_resultIter, [](auto p){return EngineQuality::Low == p.first->getCar()->qualityOfEngine();}))
+        {
+            for_each(l_iter, l_resultIter, [](auto& p)
+                                           {
+                                               if(EngineQuality::High == p.first->getCar()->qualityOfEngine())
+                                               {
+                                                   p.second -= 1.0;
+                                               }
+                                           });
+
+        }
+        l_iter = l_resultIter;
+    }
+
+    for_each(l_vecSeq.begin(), l_vecSeq.end(),
+                 [&](auto& p){ p.second += this -> calcTime(p.first->getCar(),p_track);});
+
     vector<int> l_res;
     for_each(l_vecSeq.begin(), l_vecSeq.end(),
-             [&](auto p){ l_res.push_back(p.first);});
+             [&](auto p){ l_res.push_back(p.first->getId());});
 
     return move(l_res);
 }
