@@ -8,33 +8,83 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
     vector<pair<ITeam*, float>> l_vecSeq;
     vector<ITeam*> l_teams;
 
-    for (auto p : p_teams)
+    selectTeamsAbleToJoinRace(p_teams, l_teams);
+
+    if(not checkIfNumberOfTeamsIsValid(l_teams))
     {
-        if(validate(p->getCar()))
+        throw out_of_range(" valid teams size is out of range ");
+    }
+
+    sortTeamsOrdersBaseOnQualificationTime(l_teams);
+
+    getTimeOfEachTeamAfterFirstRound(l_teams, l_vecSeq, p_track);
+
+    sortTeamsWithTimeOrdersBaseOnTime(l_vecSeq);
+
+    headToHeadAfterFirstRoundTeamsWithBetterEngineWillGo1SecondFaster(l_vecSeq);
+
+    getTotalTimeOfEachTeamAfterRaceFinished(l_vecSeq, p_track);
+
+    sortTeamsWithTimeOrdersBaseOnTime(l_vecSeq);
+
+    vector<int> l_res;
+    getResultsSeqOfTeams(l_vecSeq, l_res);
+
+    return move(l_res);
+}
+
+bool Race::checkIfCarStausIsvalid(const ICar* p_car)
+{
+    return (100 == p_car -> statusOfTire() and
+            100 == p_car -> statusOfEngine() and
+            100 == p_car -> statusOfSuspension());
+}
+
+bool Race::checkIfNumberOfTeamsIsValid(vector<ITeam*>& p_teams)
+{
+    return p_teams.size() < 7 and p_teams.size() > 1;
+}
+
+void Race::selectTeamsAbleToJoinRace(const vector<ITeam*>& p_orginalTeams, vector<ITeam*>& p_selectedTeams)
+{
+    for (auto p : p_orginalTeams)
+    {
+        if(checkIfCarStausIsvalid(p->getCar()))
         {
-            l_teams.push_back(p);
+            p_selectedTeams.push_back(p);
         }
     }
+}
 
-    if(l_teams.size() > 6 or l_teams.size() < 2)
+void Race::sortTeamsOrdersBaseOnQualificationTime(vector<ITeam*>& p_Teams)
+{
+
+    sort(p_Teams.begin(), p_Teams.end(),
+            [](auto p1, auto p2){ return p1->getQualificationTime() < p2->getQualificationTime();});
+
+
+}
+
+void Race::getTimeOfEachTeamAfterFirstRound(vector<ITeam*>& p_Teams, vector<pair<ITeam*, float>>& p_TeamsWithTime, const ITrack& p_track)
+{
+    float l_startOrderTimeToBeAdded = 0.0;
+    for_each(p_Teams.begin(), p_Teams.end(),
+             [&](auto p){ p_TeamsWithTime.push_back(make_pair(p, (l_startOrderTimeToBeAdded++) + this -> calcTime(p->getCar(),p_track)));});
+
+}
+
+void Race::sortTeamsWithTimeOrdersBaseOnTime(vector<pair<ITeam*, float>>& p_TeamsWithTime)
+{
+    sort(p_TeamsWithTime.begin(), p_TeamsWithTime.end(),
+             [](auto p1, auto p2){ return p1.second < p2.second;});
+}
+
+void Race::headToHeadAfterFirstRoundTeamsWithBetterEngineWillGo1SecondFaster(vector<pair<ITeam*, float>>& p_TeamsWithTime)
+{
+    auto l_resultIter = p_TeamsWithTime.begin();
+    for(auto l_iter = p_TeamsWithTime.begin(); l_iter != p_TeamsWithTime.end();)
     {
-        throw out_of_range(" validate teams size is out of range ");
-    }
-
-    sort(l_teams.begin(), l_teams.end(),
-         [](auto p1, auto p2){ return p1->getQualificationTime() < p2->getQualificationTime();});
-
-    float i = 0.0;
-    for_each(l_teams.begin(), l_teams.end(),
-             [&](auto p){ l_vecSeq.push_back(make_pair(p, (i++) + this -> calcTime(p->getCar(),p_track)));});
-
-    sort(l_vecSeq.begin(), l_vecSeq.end(),
-         [](auto p1, auto p2){ return p1.second < p2.second;});
-
-    auto l_resultIter = l_vecSeq.begin();
-    for(auto l_iter = l_vecSeq.begin(); l_iter != l_vecSeq.end();)
-    {
-        l_resultIter = find_if(l_iter, l_vecSeq.end(),[&](auto p){return p.second != l_iter->second;});
+        l_resultIter = find_if(l_iter, p_TeamsWithTime.end(),[&](auto p){return p.second != l_iter->second;});
         if(any_of(l_iter, l_resultIter, [](auto p){return EngineQuality::Low == p.first->getCar()->qualityOfEngine();}))
         {
             for_each(l_iter, l_resultIter, [](auto& p)
@@ -49,21 +99,20 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
         l_iter = l_resultIter;
     }
 
-    for_each(l_vecSeq.begin(), l_vecSeq.end(),
-                 [&](auto& p){ p.second += this -> calcTime(p.first->getCar(),p_track);});
-
-    vector<int> l_res;
-    for_each(l_vecSeq.begin(), l_vecSeq.end(),
-             [&](auto p){ l_res.push_back(p.first->getId());});
-
-    return move(l_res);
 }
 
-bool Race::validate(const ICar* p_car)
+void Race::getTotalTimeOfEachTeamAfterRaceFinished(vector<pair<ITeam*, float>>& p_TeamsWithTime, const ITrack& p_track)
 {
-    return (100 == p_car -> statusOfTire() and
-             100 == p_car -> statusOfEngine() and
-             100 == p_car -> statusOfSuspension());
+
+    for_each(p_TeamsWithTime.begin(), p_TeamsWithTime.end(),
+                     [&](auto& p){ p.second += this -> calcTime(p.first->getCar(),p_track);});
+
+}
+
+void Race::getResultsSeqOfTeams(vector<pair<ITeam*, float>>& p_TeamsWithTime, vector<int>& p_results)
+{
+    for_each(p_TeamsWithTime.begin(), p_TeamsWithTime.end(),
+                 [&](auto p){ p_results.push_back(p.first->getId());});
 }
 
 float Race::calcTime(const ICar* p_car, const ITrack& p_track)
