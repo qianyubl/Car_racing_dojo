@@ -147,13 +147,10 @@ TEST_F(CarRacingTestSuite, MoreThanSixValidedTeamsAreNotAllowed)
 
     vector<ITeam*> l_teams{&l_team1, &l_team2, &l_team3, &l_team4, &l_team5, &l_team6, &l_team7};
 
-    EXPECT_CALL(l_team1, getCar()).WillRepeatedly(Return(&l_car1));
-    EXPECT_CALL(l_team2, getCar()).WillRepeatedly(Return(&l_car1));
-    EXPECT_CALL(l_team3, getCar()).WillRepeatedly(Return(&l_car1));
-    EXPECT_CALL(l_team4, getCar()).WillRepeatedly(Return(&l_car1));
-    EXPECT_CALL(l_team5, getCar()).WillRepeatedly(Return(&l_car1));
-    EXPECT_CALL(l_team6, getCar()).WillRepeatedly(Return(&l_car1));
-    EXPECT_CALL(l_team7, getCar()).WillRepeatedly(Return(&l_car1));
+    for(auto p : l_teams)
+    {
+        EXPECT_CALL(*(dynamic_cast<TeamMock*>(p)), getCar()).WillRepeatedly(Return(&l_car1));
+    }
 
     setCarStatus(l_car1, 100, 100, 100);
 
