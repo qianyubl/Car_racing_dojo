@@ -137,8 +137,33 @@ TEST_F(CarRacingTestSuite, TeamWithEqualTimeAfterOneLapWithBetterEngineShouldWin
 
     vector<int> l_seq{2, 1, 3};
     ASSERT_EQ(l_seq, m_race.run(l_teams, m_trackMock));
-
 }
+
+TEST_F(CarRacingTestSuite, TeamWithEqualTimeAfterTwoLapsWithBetterHandlingEngineMechanicQulificationTimeShouldWin)
+{
+    CarMock l_car1, l_car2, l_car3, l_car4;
+    TeamMock l_team1, l_team2, l_team3, l_team4;
+    vector<ITeam*> l_teams{&l_team1, &l_team2, &l_team3, &l_team4};
+
+    setTeamAttributes(l_team1, &l_car1, 1, 28.0);// 34            + 34=68
+    setTeamAttributes(l_team2, &l_car2, 2, 32.0);// 28 +3          +  28=59
+    setTeamAttributes(l_team3, &l_car3, 3, 31.0);// 33 +2             + 33 =68
+    setTeamAttributes(l_team4, &l_car4, 4, 30.0);// 39+1        +  39=79
+
+
+    setCarAllAttributes(l_car1, 100, 100, 100, EngineQuality::High,Handling::Bad);
+    setCarAllAttributes(l_car2, 100, 100, 100, EngineQuality::High,Handling::Good);
+    setCarAllAttributes(l_car3, 100, 100, 100, EngineQuality::Low,Handling::Good);
+    setCarAllAttributes(l_car4, 100, 100, 100, EngineQuality::Low,Handling::Bad);
+
+
+    EXPECT_CALL(m_trackMock, getLength()).WillRepeatedly(Return(500));
+    EXPECT_CALL(m_trackMock, getTurns()).WillRepeatedly(Return(6));
+
+    vector<int> l_seq{2, 3, 1, 4};
+    ASSERT_EQ(l_seq, m_race.run(l_teams, m_trackMock));
+}
+
 
 TEST_F(CarRacingTestSuite, MoreThanSixValidedTeamsAreNotAllowed)
 {

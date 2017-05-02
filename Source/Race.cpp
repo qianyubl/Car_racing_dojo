@@ -2,6 +2,8 @@
 #include "ICar.hpp"
 #include "ITrack.hpp"
 #include "algorithm"
+#include "iostream"
+#include <functional>
 
 vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
 {
@@ -20,12 +22,20 @@ vector<int> Race::run(const vector<ITeam*>& p_teams, const ITrack& p_track)
     getTimeOfEachTeamAfterFirstRound(l_teams, l_vecSeq, p_track);
 
     sortTeamsWithTimeOrdersBaseOnTime(l_vecSeq);
+//    for(auto p : l_vecSeq)
+//      cout << p.first->getId() << " " << p.second << endl;
 
     headToHeadAfterFirstRoundTeamsWithBetterEngineWillGo1SecondFaster(l_vecSeq);
+//    for(auto p : l_vecSeq)
+//      cout << p.first->getId() << " " << p.second << endl;
 
     getTotalTimeOfEachTeamAfterRaceFinished(l_vecSeq, p_track);
-
+//    for(auto p:l_vecSeq)
+//        cout << p.first->getId() << " " << p.second << endl;
+    forHeadToHeadSituation(l_vecSeq);
     sortTeamsWithTimeOrdersBaseOnTime(l_vecSeq);
+//    for(auto p:l_vecSeq)
+//        cout << p.first->getId() << " " << p.second << endl;
 
     vector<int> l_res;
     getResultsSeqOfTeams(l_vecSeq, l_res);
@@ -78,6 +88,18 @@ void Race::sortTeamsWithTimeOrdersBaseOnTime(vector<pair<ITeam*, float>>& p_Team
     sort(p_TeamsWithTime.begin(), p_TeamsWithTime.end(),
              [](auto p1, auto p2){ return p1.second < p2.second;});
 }
+//struct
+//{
+//    bool operator()(pair<ITeam*, float>& p1, pair<ITeam*, float>& p2)
+//    {
+//        return p1.second < p2.second;
+//    }
+//}customLess;
+
+//void Race::sortTeamsWithTimeOrdersBaseOnTime(vector<pair<ITeam*, float>>& p_TeamsWithTime)
+//{
+//    sort(p_TeamsWithTime.begin(), p_TeamsWithTime.end(), customLess);
+//}
 
 void Race::headToHeadAfterFirstRoundTeamsWithBetterEngineWillGo1SecondFaster(vector<pair<ITeam*, float>>& p_TeamsWithTime)
 {
@@ -101,12 +123,32 @@ void Race::headToHeadAfterFirstRoundTeamsWithBetterEngineWillGo1SecondFaster(vec
 
 }
 
+void Race::forHeadToHeadSituation(vector<pair<ITeam*, float>>& p_TeamsWithTime)
+{
+    auto l_resultIter = p_TeamsWithTime.begin();
+    for(auto l_iter = p_TeamsWithTime.begin(); l_iter != p_TeamsWithTime.end();)
+    {
+        l_resultIter = find_if(l_iter, p_TeamsWithTime.end(),[&](auto p){return p.second != l_iter->second;});
+        if(any_of(l_iter, l_resultIter, [](auto p){return Handling::Bad == p.first->getCar()->handling();}))
+        {
+            for_each(l_iter, l_resultIter, [](auto& p)
+                                           {
+                                               if(Handling::Good == p.first->getCar()->handling())
+                                               {
+                                                   p.second -= 1.0;
+                                               }
+                                           });
+
+        }
+        l_iter = l_resultIter;
+    }
+
+}
+
 void Race::getTotalTimeOfEachTeamAfterRaceFinished(vector<pair<ITeam*, float>>& p_TeamsWithTime, const ITrack& p_track)
 {
-
     for_each(p_TeamsWithTime.begin(), p_TeamsWithTime.end(),
                      [&](auto& p){ p.second += this -> calcTime(p.first->getCar(),p_track);});
-
 }
 
 void Race::getResultsSeqOfTeams(vector<pair<ITeam*, float>>& p_TeamsWithTime, vector<int>& p_results)
